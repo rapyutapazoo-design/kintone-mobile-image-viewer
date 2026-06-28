@@ -31,6 +31,22 @@ function getLightbox() {
     maxZoomLevel: 4,
   });
   lightbox.init();
+
+  // 保険: primary URL の読み込みに失敗したら fallback（サムネ src）で再読込する。
+  // PhotoSwipe公式の loadError イベントを使い、content を作り直して再ロードする。
+  lightbox.on('loadError', (e) => {
+    const c = e.content;
+    const cur = c && c.data && c.data.src;
+    const fb = cur && fallbackMap.get(cur);
+    if (!fb || fb === cur || c.__kivFellback) return;
+    c.__kivFellback = true;
+    c.data.src = fb;
+    c.element = null;        // 壊れた要素を破棄して作り直す
+    c.isAttached = false;
+    if (c.slide && c.slide.container) c.slide.container.innerText = ''; // エラー表示を消す
+    c.load(false, true);    // fallback URL で再ロード（成功時に自動 append される）
+  });
+
   return lightbox;
 }
 
@@ -62,35 +78,39 @@ function isExcluded(img) {
   return false;
 }
 
-// 拡大表示に使うURLを解決する（原寸を優先）。
-//   ① Kintone添付サムネの data-original（原寸URL）があれば最優先
-//   ② <a> で囲まれた画像リンクがあれば原寸URL
-//   ③ src からサムネ幅指定（&w=NNN / ?w=NNN）を除去した原寸相当
-//   ④ それも無ければ DOM の現在の src
-//   ※ いずれも「タップ時点」でDOMから参照する（遅延参照）。
-//      内部認証URLは失効しうるため、事前収集せずここで読むのが最も確実。
-function resolveSrc(img) {
-  // ① data-original（添付サムネの原寸URL）
-  const original = img.getAttribute('data-original');
-  if (original) return new URL(original, location.href).href;
+// 表示用URLが読めなかったときの代替URL（primary -> fallback）。
+const fallbackMap = new Map();
 
-  // ② 画像リンク
+// 拡大表示に使うURLを解決する（primary=表示用 / fallback=保険）。
+//   実測（download.do の挙動）に基づく方針:
+//     ・レコードのリッチテキスト画像（class に user-token を含む）は、署名URLの
+//       仕組み上「表示中のサムネ src（w=NNN）」だけが有効。data-original や w除去・
+//       w拡大は 404 になるため、src をそのまま使う。
+//     ・掲示板など（user-token 無し）は data-original（原寸）が有効なので優先。
+//     ・どの場合も、読み込み失敗時は src（必ず読める）へフォールバックする。
+//   ※ URLは「タップ時点」でDOMから参照する（遅延参照）。
+function resolveUrls(img) {
+  const src = img.currentSrc || img.src || '';
+
+  // レコードのリッチテキスト画像: サムネ src のみが有効
+  if (/user-token/.test(img.className || '')) {
+    return { primary: src, fallback: src };
+  }
+
+  // data-original（原寸）優先
+  const original = img.getAttribute('data-original');
+  if (original) return { primary: new URL(original, location.href).href, fallback: src };
+
+  // <a> で囲まれた画像リンク
   const a = img.closest('a[href]');
   if (a) {
     const href = a.getAttribute('href') || '';
     if (/\.(png|jpe?g|gif|webp|bmp)(\?|$)/i.test(href) || /download|file|blob/i.test(href)) {
-      return a.href;
+      return { primary: a.href, fallback: src };
     }
   }
 
-  // ③ src からサムネ幅指定を除去（download.do?...&w=250 → 原寸）
-  const src = img.currentSrc || img.src || '';
-  if (/[?&]w=\d+/i.test(src)) {
-    return src.replace(/([?&])w=\d+(&|$)/i, (m, p1, p2) => (p2 === '&' ? p1 : '')).replace(/[?&]$/, '');
-  }
-
-  // ④ フォールバック
-  return src;
+  return { primary: src, fallback: src };
 }
 
 // クリックされた画像が属する「グループの基点要素」を決める。
@@ -112,8 +132,10 @@ function collectImages(groupRoot) {
 function buildSlide(img) {
   const w = img.naturalWidth || img.clientWidth || 1600;
   const h = img.naturalHeight || img.clientHeight || 1200;
+  const { primary, fallback } = resolveUrls(img);
+  if (primary !== fallback) fallbackMap.set(primary, fallback);
   return {
-    src: resolveSrc(img),
+    src: primary,
     width: w,
     height: h,
     msrc: img.currentSrc || img.src,
