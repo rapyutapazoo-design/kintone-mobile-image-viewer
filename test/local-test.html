@@ -1,0 +1,75 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Kintone Image Viewer - real DOM local test</title>
+<link rel="stylesheet" href="../dist/photoswipe.css" />
+<style>
+  body { font-family: sans-serif; padding: 16px; max-width: 420px; }
+  .block { border: 1px solid #ccc; padding: 12px; margin: 12px 0; }
+  img.thumb { width: 120px; height: 90px; object-fit: cover; margin: 4px; }
+  .mobile-header-global-navigation-container { background:#333; color:#fff; padding:8px; }
+</style>
+
+<!-- テスト用にモバイルガードを強制解除（本番では不要） -->
+<script>window.__KIV_FORCE__ = true;</script>
+
+<!-- ヘッダー（除外ゾーン） -->
+<div class="mobile-header-global-navigation-container">
+  <img src="https://picsum.photos/id/1/40/40" alt="logo（除外）" style="width:40px" />
+</div>
+
+<div id="container">
+  <div class="gaia-mobile-viewcontroller">
+
+    <!-- 装飾ポータルスライドショー（除外されるべき: cybozu-ui-slideshow） -->
+    <div class="cybozu-ui-slideshow">
+      <img class="cybozu-ui-slideshow-thumbnail" src="https://picsum.photos/id/100/1200/400" alt="deco（除外）" style="width:300px" />
+    </div>
+
+    <!-- お知らせ掲示板（実DOM: gaia-mobile-v2-portal-announcement... / 添付サムネ） -->
+    <div class="gaia-mobile-v2-portal-announcement-container">
+     <div class="gaia-mobile-v2-portal-announcement">
+      <div class="gaia-mobile-v2-portal-announcement-content">
+       <div class="gaia-mobile-v2-portal-announcementcontents-text">
+        <p><span>お知らせ本文。</span></p>
+        <p><span>
+          <img class="ocean-attached-file gaia-ui-slideshow-thumbnail" alt="bulletin1"
+               src="https://picsum.photos/id/10/250/188?thumb"
+               data-original="https://picsum.photos/id/10/1200/800" width="250" data-thumbnail-key="slide-6" />
+          <img class="ocean-attached-file gaia-ui-slideshow-thumbnail" alt="bulletin2"
+               src="https://picsum.photos/id/20/250/300?thumb"
+               data-original="https://picsum.photos/id/20/1000/1200" width="250" data-thumbnail-key="slide-7" />
+        </span></p>
+       </div>
+      </div>
+     </div>
+    </div>
+
+    <!-- スペースのスレッドコメント -->
+    <div class="gaia-argoui-space-thread-comment block">
+      <img class="thumb" src="https://picsum.photos/id/30/1600/900" alt="thread1" />
+      <img class="thumb" src="https://picsum.photos/id/40/900/1200" alt="thread2" />
+    </div>
+
+  </div>
+
+  <!-- レコードのリッチテキスト（実DOM: control-value-gaia control-editor-gaia） -->
+  <div class="gaia-mobile-v2-ui-tabview-contents">
+   <div class="row-gaia">
+    <div class="control-gaia field-13313405">
+     <div class="control-value-gaia value-13313405 control-editor-gaia">
+      <p><font color="#000000"><span>
+        <img class="ocean-attached-file user-token-gaia-ui-slideshow-thumbnail" alt="richtext1"
+             src="https://picsum.photos/id/50/250/192?thumb"
+             data-original="https://picsum.photos/id/50/1400/1000" width="250" />
+        <img class="ocean-attached-file user-token-gaia-ui-slideshow-thumbnail" alt="richtext2"
+             src="https://picsum.photos/id/60/250/192?thumb"
+             data-original="https://picsum.photos/id/60/1300/1000" width="250" />
+      </span></font></p>
+     </div>
+    </div>
+   </div>
+  </div>
+
+</div>
+
+<script src="../dist/kintone-image-viewer.bundle.js"></script>
