@@ -1,6 +1,7 @@
-// ビルドスクリプト: src/index.js と PhotoSwipe を 1 ファイルにバンドルする。
-// 出力: dist/kintone-image-viewer.bundle.js（Kintoneに「JavaScript」として登録）
-//       dist/photoswipe.css         （Kintoneに「CSS」として登録）
+// ビルドスクリプト: src/index.js ＋ PhotoSwipe(JS) ＋ PhotoSwipe(CSS) を 1 ファイルに
+// バンドルする。CSSはJSへ取り込み、起動時に <style> として自動注入される。
+// 出力: dist/kintone-image-viewer.bundle.js（Kintoneに「JavaScript」として登録。これ1つでOK）
+//       dist/photoswipe.css         （参考用コピー。CSSは同梱済みのため登録不要）
 import * as esbuild from 'esbuild';
 import { copyFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -19,6 +20,7 @@ const options = {
   target: ['es2019'],      // モバイルブラウザ互換性のため控えめに
   minify: true,
   legalComments: 'none',
+  loader: { '.css': 'text' }, // CSSを文字列として取り込み、JSへ同梱する
   outfile: resolve(dist, 'kintone-image-viewer.bundle.js'),
   logLevel: 'info',
 };

@@ -1,7 +1,7 @@
 <!doctype html>
 <meta charset="utf-8" />
-<title>Kintone Image Viewer - URL resolution test</title>
-<link rel="stylesheet" href="../dist/photoswipe.css" />
+<title>Kintone Image Viewer - CSS injection test (no external css)</title>
+<!-- ★ photoswipe.css は意図的にリンクしない。JSバンドルが自動注入するはず -->
 <style>
   body { font-family: sans-serif; padding: 16px; max-width: 420px; }
   .block { border: 1px solid #ccc; padding: 12px; margin: 12px 0; }
@@ -10,36 +10,14 @@
 <script>window.__KIV_FORCE__ = true;</script>
 
 <div id="container">
-
-  <!-- 掲示板: user-token なし → data-original(原寸 1200) を使うべき -->
   <div class="gaia-mobile-v2-portal-announcement-content block">
-    <p><span>
-      <img class="ocean-attached-file gaia-ui-slideshow-thumbnail" alt="bulletin"
-           src="https://picsum.photos/id/10/250/188?thumb"
-           data-original="https://picsum.photos/id/10/1200/800" width="250" />
-    </span></p>
+    <img class="ocean-attached-file gaia-ui-slideshow-thumbnail" alt="bulletin1"
+         src="https://picsum.photos/id/10/250/188?thumb"
+         data-original="https://picsum.photos/id/10/1200/800" width="250" />
+    <img class="ocean-attached-file gaia-ui-slideshow-thumbnail" alt="bulletin2"
+         src="https://picsum.photos/id/20/250/300?thumb"
+         data-original="https://picsum.photos/id/20/1000/1200" width="250" />
   </div>
-
-  <!-- レコードのリッチテキスト: user-token あり → サムネ src を使うべき。
-       data-original はわざと壊れたURL（404相当）。それでも src で表示されること。 -->
-  <div class="control-value-gaia control-editor-gaia block">
-    <p><span>
-      <img class="ocean-attached-file user-token-gaia-ui-slideshow-thumbnail" alt="record"
-           src="https://picsum.photos/id/50/250/192?ok"
-           data-original="https://example.invalid/broken-original.png" width="250" />
-    </span></p>
-  </div>
-
-  <!-- フォールバック検証: user-token なしだが data-original が壊れている →
-       primary(壊れ) で error → fallback(src 正常) に切替されて表示されること -->
-  <div class="gaia-mobile-v2-portal-announcement-content block">
-    <p><span>
-      <img class="ocean-attached-file gaia-ui-slideshow-thumbnail" alt="fallback"
-           src="https://picsum.photos/id/70/250/188?ok"
-           data-original="https://example.invalid/broken-2.png" width="250" />
-    </span></p>
-  </div>
-
 </div>
 
 <script src="../dist/kintone-image-viewer.bundle.js"></script>

@@ -7,6 +7,9 @@
 // =============================================================================
 import PhotoSwipeLightbox from 'photoswipe/lightbox';
 import PhotoSwipe from 'photoswipe';
+// PhotoSwipe本体のCSSをビルド時に文字列として取り込む（build.mjs の text ローダー）。
+// 起動時に <style> として注入するため、Kintoneへ別途CSSを登録する必要がない。
+import photoswipeCss from '../node_modules/photoswipe/dist/photoswipe.css';
 import {
   CONFIG,
   CONTENT_ROOTS,
@@ -16,10 +19,22 @@ import {
 } from './config.js';
 
 let lightbox = null;
+let styleInjected = false;
+
+// PhotoSwipeのCSSをページへ一度だけ注入する（CSSアップロード不要化）。
+function injectStyle() {
+  if (styleInjected) return;
+  styleInjected = true;
+  const style = document.createElement('style');
+  style.setAttribute('data-pswp-style', '1');
+  style.textContent = photoswipeCss;
+  (document.head || document.documentElement).appendChild(style);
+}
 
 // PhotoSwipe lightbox を一度だけ生成して使い回す。
 function getLightbox() {
   if (lightbox) return lightbox;
+  injectStyle(); // スタイルを先に注入してから初期化する
   lightbox = new PhotoSwipeLightbox({
     pswpModule: PhotoSwipe,
     pinchToClose: true,
